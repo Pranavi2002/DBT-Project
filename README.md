@@ -2,7 +2,7 @@
 
 ## 📘 Overview
 
-This project demonstrates a **complete end-to-end DBT workflow** — from staging raw data to building fact and dimension tables, adding seeds, macros, and data quality tests.  
+This project demonstrates a **complete end-to-end DBT workflow** — from staging raw data to building fact and dimension tables, adding seeds, macros, and data quality tests.
 It follows a **Star Schema** design and simulates a **real-world analytics engineering setup** used in modern data teams.
 
 Built using **dbt Core + Snowflake**, this project transforms raw data into analytics-ready models with robust testing and documentation.
@@ -19,22 +19,24 @@ Raw Data → Staging Models → Dimension Tables → Fact Table → Tests → Do
 
 **Schema Layers:**
 
-| Layer               | Purpose                                             | Example Models                                            |
-| ------------------- | --------------------------------------------------- | --------------------------------------------------------- |
-| `staging/`          | Clean and standardize raw source data               | `stg_orders.sql`, `stg_customers.sql`, `stg_products.sql` |
-| `marts/dimensions/` | Create reusable dimension tables                    | `dim_customers.sql`, `dim_products.sql`                   |
-| `marts/`            | Build fact table joining dimensions                 | `fct_sales.sql`                                           |
-| `snapshots/`        | Track changes over time (SCD)                       | `customers_snapshot.sql`                                  |
-| `seeds/`            | Load static lookup tables from CSV                  | `product_categories.csv`                                  |
-| `macros/`           | Define reusable SQL logic                           | `category_cleaning.sql`                                   |
-| `tests/`            | Add data quality & integrity checks                 | `positive_sales.sql`                                      |
+| Layer               | Purpose                               | Example Models                                            |
+| ------------------- | ------------------------------------- | --------------------------------------------------------- |
+| `staging/`          | Clean and standardize raw source data | `stg_orders.sql`, `stg_customers.sql`, `stg_products.sql` |
+| `marts/dimensions/` | Create reusable dimension tables      | `dim_customers.sql`, `dim_products.sql`                   |
+| `marts/`            | Build fact table joining dimensions   | `fct_sales.sql`                                           |
+| `snapshots/`        | Track changes over time (SCD)         | `customers_snapshot.sql`                                  |
+| `seeds/`            | Load static lookup tables from CSV    | `product_categories.csv`                                  |
+| `macros/`           | Define reusable SQL logic             | `category_cleaning.sql`, `positive_sales.sql`             |
+| `tests/`            | Add data quality & integrity checks   | (optional folder, now handled via macros)                 |
 
 ---
 
 ## 🧩 Key Components
 
 ### 🧠 1. Staging Models
+
 Located in `models/staging/`:
+
 * Cleans raw source data (`orders`, `customers`, `products`).
 * Applies consistent naming conventions, type casting, and basic transformations.
 * Serves as the foundation for dimension and fact models.
@@ -42,19 +44,25 @@ Located in `models/staging/`:
 ---
 
 ### 📊 2. Dimension & Fact Models
+
 Located in `models/marts/`:
+
 * **Fact Table:** `fct_sales` joins customers, products, and orders into one analytical table.
-* **Dimensions:**  
-  - `dim_customers` – Customer information  
-  - `dim_products` – Product information enriched via seeds  
+* **Dimensions:**
+
+  * `dim_customers` – Customer information
+  * `dim_products` – Product information enriched via seeds
 
 Implements a **Star Schema** — enabling efficient analytical queries.
 
 ---
 
 ### 🌱 3. Seeds
+
 Static lookup data stored in `seeds/product_categories.csv`:
+
 * Loaded using:
+
   ```bash
   dbt seed
   ```
@@ -71,7 +79,7 @@ Reusable SQL logic defined in `macros/category_cleaning.sql`, allowing transform
 
 ### 🧪 5. Tests
 
-Includes both **generic** and **custom SQL-based tests**.
+Includes both **generic** and **custom macro-based tests**.
 
 #### ✅ Example: Generic Tests
 
@@ -83,15 +91,28 @@ tests:
   - unique
 ```
 
-#### 🧩 Example: Custom SQL Test
+#### 🧩 Example: Custom Macro Test
 
-File: `tests/positive_sales.sql`
+📂 File: `macros/positive_sales.sql`
 
 ```sql
--- Fail if any sales amount is <= 0
-select order_id, amount_usd
-from {{ ref('fct_sales') }}
-where amount_usd <= 0
+{% test positive_sales(model, column_name) %}
+select *
+from {{ model }}
+where {{ column_name }} <= 0
+{% endtest %}
+```
+
+Then reference it inside `schema.yml` (e.g., for `fct_sales`):
+
+```yaml
+models:
+  - name: fct_sales
+    columns:
+      - name: amount_usd
+        tests:
+          - not_null
+          - positive_sales
 ```
 
 Run all tests:
@@ -99,6 +120,8 @@ Run all tests:
 ```bash
 dbt test
 ```
+
+✅ This ensures all sales amounts are positive and showcases the **modern way to create custom DBT tests using macros.**
 
 ---
 
@@ -131,6 +154,57 @@ select * from {{ ref('stg_customers') }}
 | `dbt snapshot`      | Tracks historical changes       |
 | `dbt docs generate` | Builds model documentation      |
 | `dbt docs serve`    | Opens interactive lineage graph |
+
+---
+
+Perfect 👌 here’s the **🧩 “How It Works”** section you can drop right before the **“📊 Documentation & Lineage”** section in your README — it’s formatted to look great on GitHub:
+
+---
+
+## 🧩 How It Works — Data Flow Overview
+
+This diagram shows how raw data moves through the DBT pipeline and becomes analytics-ready in your **Star Schema** model.
+
+```
+        ┌───────────────────────────┐
+        │        Raw Data           │
+        │ (orders, customers, etc.) │
+        └────────────┬──────────────┘
+                     │
+                     ▼
+        ┌───────────────────────────┐
+        │      Staging Models       │
+        │ (stg_orders, stg_customers│
+        │  stg_products)            │
+        └────────────┬──────────────┘
+                     │
+                     ▼
+        ┌───────────────────────────┐
+        │   Dimension Tables         │
+        │ (dim_customers, dim_products) │
+        └────────────┬──────────────┘
+                     │
+                     ▼
+        ┌───────────────────────────┐
+        │        Fact Table         │
+        │         fct_sales         │
+        └────────────┬──────────────┘
+                     │
+                     ▼
+        ┌───────────────────────────┐
+        │        DBT Tests          │
+        │ (generic + macro-based)   │
+        └────────────┬──────────────┘
+                     │
+                     ▼
+        ┌───────────────────────────┐
+        │     Analytics Layer       │
+        │ (Power BI / Tableau / BI) │
+        └───────────────────────────┘
+```
+
+**Purpose:**
+Each stage ensures clean, validated, and enriched data ready for dashboards and business insights.
 
 ---
 
@@ -171,8 +245,7 @@ snapshots/
 seeds/
  └── product_categories.csv
 macros/
- └── category_cleaning.sql
-tests/
+ ├── category_cleaning.sql
  └── positive_sales.sql
 ```
 
@@ -185,8 +258,8 @@ tests/
 | **Data Modeling** | Built a layered model structure (staging → marts).       |
 | **Star Schema**   | Designed a central fact with dimension relationships.    |
 | **Seeds**         | Used static lookup data to enrich models.                |
-| **Macros**        | Implemented reusable SQL logic for standardization.      |
-| **Testing**       | Added generic & custom SQL-based data quality tests.     |
+| **Macros**        | Implemented reusable SQL logic and custom tests.         |
+| **Testing**       | Added generic & macro-based data quality tests.          |
 | **Snapshots**     | Captured historical SCD2-style data changes.             |
 | **Docs**          | Generated data lineage and documentation using dbt docs. |
 
@@ -222,7 +295,7 @@ By completing this project, you mastered:
 * Structuring dbt projects using **staging → marts → tests**
 * Designing **Star Schema** models in dbt
 * Creating **macros**, **seeds**, and **snapshots**
-* Implementing **data quality testing**
+* Implementing **data quality testing using macros**
 * Using **dbt docs** for visualization and governance
 
 ---
