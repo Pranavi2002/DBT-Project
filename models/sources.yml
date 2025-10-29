@@ -1,0 +1,13 @@
+version: 2
+sources:
+  - name: raw
+    description: "Raw data loaded into Snowflake"
+    database: DBT_DB          # ✅ your Snowflake database name
+    schema: RAW               # ✅ the schema you created for raw tables
+    tables:
+      - name: orders
+        description: "Raw order transactions"
+      - name: customers
+        description: "Customer details"
+      - name: products
+        description: "Product catalogue"

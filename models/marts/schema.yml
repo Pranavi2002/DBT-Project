@@ -1,0 +1,124 @@
+# version: 2
+
+# models:
+#   - name: fct_sales
+#     description: "Fact table combining orders, customers, and products with standardized fields."
+#     columns:
+#       - name: order_id
+#         description: "Unique order identifier"
+#         tests:
+#           - unique
+#           - not_null
+
+#       - name: customer_id
+#         description: "Unique customer identifier"
+#         tests:
+#           - not_null
+
+#       - name: product_id
+#         description: "Unique product identifier"
+#         tests:
+#           - not_null
+
+#       - name: amount_usd
+#         description: "Order amount converted to USD"
+#         tests:
+#           - not_null
+
+#       - name: order_date
+#         description: "Date of the order"
+
+#       - name: customer_name
+#         description: "Full customer name"
+
+#       - name: country
+#         description: "Customer country"
+
+#       - name: product_name
+#         description: "Product name"
+
+#       - name: category
+#         description: "Product category"
+
+# After introducing dimension tables
+version: 2
+
+models:
+  - name: fct_sales
+    description: "Fact table combining orders, customers, and products with standardized fields."
+    columns:
+      - name: order_id
+        description: "Unique order identifier"
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Unique customer identifier"
+        tests:
+          - not_null
+
+      - name: product_id
+        description: "Unique product identifier"
+        tests:
+          - not_null
+
+      - name: amount_usd
+        description: "Order amount converted to USD"
+        tests:
+          - not_null
+          # use of tests
+          - positive_sales 
+
+      - name: order_date
+        description: "Date of the order"
+
+      - name: customer_name
+        description: "Full customer name"
+
+      - name: country
+        description: "Customer country"
+
+      - name: product_name
+        description: "Product name"
+
+      - name: category
+        description: "Product category"
+
+  - name: dim_customers
+    description: "Customer dimension table"
+    columns:
+      - name: customer_id
+        description: "Unique customer identifier"
+        tests:
+          - unique
+          - not_null
+      - name: customer_name
+        description: "Full customer name"
+      - name: country
+        description: "Customer country"
+
+  - name: dim_products
+    description: "Product dimension table"
+    columns:
+      - name: product_id
+        description: "Unique product identifier"
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: "Product name"
+      - name: category
+        description: "Product category"
+  
+  # use of seed
+  - name: product_categories
+    description: "Seed lookup for product category groupings"
+    columns:
+      - name: category
+        tests:
+          - not_null
+          - unique
+      - name: category_group
+        tests:
+          - not_null
