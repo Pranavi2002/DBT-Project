@@ -311,10 +311,6 @@ If you wish to extend this project:
 
 ---
 
-✅ **This project is now production-style and portfolio-ready!**
-
----
-
 ## 👩‍💻 Author
 ### Pranavi Kolipaka
 Feel free to connect: 
