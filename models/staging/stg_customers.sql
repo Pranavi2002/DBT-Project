@@ -13,4 +13,5 @@ select
     customer_name,
     country,
     current_timestamp() as updated_at  -- required for snapshot
-from {{ source('raw', 'customers') }}
+-- from {{ source('raw', 'customers') }}
+from {{ ref('customers') }} -- if creating table using seeds

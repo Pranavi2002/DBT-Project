@@ -40,12 +40,102 @@
 #       - name: category
 #         description: "Product category"
 
-# After introducing dimension tables
+
+# # After introducing dimension tables
+# version: 2
+
+# models:
+#   - name: fct_sales
+#     description: "Fact table combining orders, customers, and products with standardized fields."
+#     columns:
+#       - name: order_id
+#         description: "Unique order identifier"
+#         tests:
+#           - unique
+#           - not_null
+
+#       - name: customer_id
+#         description: "Unique customer identifier"
+#         tests:
+#           - not_null
+
+#       - name: product_id
+#         description: "Unique product identifier"
+#         tests:
+#           - not_null
+
+#       - name: amount_usd
+#         description: "Order amount converted to USD"
+#         tests:
+#           - not_null
+#           # use of tests
+#           - positive_sales 
+
+#       - name: order_date
+#         description: "Date of the order"
+
+#       - name: customer_name
+#         description: "Full customer name"
+
+#       - name: country
+#         description: "Customer country"
+
+#       - name: product_name
+#         description: "Product name"
+
+#       - name: category
+#         description: "Product category"
+
+#   - name: dim_customers
+#     description: "Customer dimension table"
+#     columns:
+#       - name: customer_id
+#         description: "Unique customer identifier"
+#         tests:
+#           - unique
+#           - not_null
+#       - name: customer_name
+#         description: "Full customer name"
+#       - name: country
+#         description: "Customer country"
+
+#   - name: dim_products
+#     description: "Product dimension table"
+#     columns:
+#       - name: product_id
+#         description: "Unique product identifier"
+#         tests:
+#           - unique
+#           - not_null
+#       - name: product_name
+#         description: "Product name"
+#       - name: category
+#         description: "Product category"
+  
+#   # use of seed
+#   - name: product_categories
+#     description: "Seed lookup for product category groupings"
+#     columns:
+#       - name: category
+#         tests:
+#           - not_null
+#           - unique
+#       - name: category_group
+#         tests:
+#           - not_null
+
+
+# After introducing Great Expectations
 version: 2
 
 models:
   - name: fct_sales
     description: "Fact table combining orders, customers, and products with standardized fields."
+    # tests:
+    #   - dbt_expectations.expect_table_row_count_to_be_greater_than:
+    #       arguments:
+    #         min_value: 0
+
     columns:
       - name: order_id
         description: "Unique order identifier"
@@ -57,68 +147,105 @@ models:
         description: "Unique customer identifier"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
 
       - name: product_id
         description: "Unique product identifier"
         tests:
           - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
 
       - name: amount_usd
         description: "Order amount converted to USD"
         tests:
           - not_null
-          # use of tests
-          - positive_sales 
+          - positive_sales
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 1000000  # adjust max_value if needed
 
       - name: order_date
         description: "Date of the order"
+        # tests:
+        #   - dbt_expectations.expect_column_values_to_match_strftime_format:
+        #       arguments:
+        #         format: "%Y-%m-%d"
 
       - name: customer_name
         description: "Full customer name"
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null
 
       - name: country
         description: "Customer country"
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null
 
       - name: product_name
         description: "Product name"
 
       - name: category
         description: "Product category"
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null
 
   - name: dim_customers
     description: "Customer dimension table"
+    # tests:
+    #   - dbt_expectations.expect_table_row_count_to_be_greater_than:
+    #       arguments:
+    #         min_value: 0
+
     columns:
       - name: customer_id
         description: "Unique customer identifier"
         tests:
           - unique
           - not_null
+
       - name: customer_name
         description: "Full customer name"
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null
+
       - name: country
         description: "Customer country"
+        tests:
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              arguments:
+                min_value: 2
+                max_value: 100
 
   - name: dim_products
     description: "Product dimension table"
+    # tests:
+    #   - dbt_expectations.expect_table_row_count_to_be_greater_than:
+    #       arguments:
+    #         min_value: 0
+
     columns:
       - name: product_id
         description: "Unique product identifier"
         tests:
           - unique
           - not_null
+
       - name: product_name
         description: "Product name"
+        tests:
+          - dbt_expectations.expect_column_values_to_not_be_null
+
       - name: category
         description: "Product category"
-  
-  # use of seed
-  - name: product_categories
-    description: "Seed lookup for product category groupings"
-    columns:
-      - name: category
         tests:
-          - not_null
-          - unique
-      - name: category_group
-        tests:
-          - not_null
+          - relationships:
+              arguments:
+                to: ref('product_categories')
+                field: category

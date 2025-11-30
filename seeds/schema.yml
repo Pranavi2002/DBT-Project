@@ -1,0 +1,32 @@
+version: 2
+
+seeds:
+  - name: customers
+    description: "Seed data for customers"
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_name
+        tests:
+          - not_null
+      - name: country
+        tests:
+          - not_null
+
+  - name: product_categories
+    description: "Seed lookup for product category groupings"
+    columns:
+      - name: category
+        description: "Product category name"
+        tests:
+          - not_null
+          - unique
+      - name: category_group
+        description: "Group the product belongs to"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              arguments:
+                value_set: ['Tech', 'Home', 'Apparel', 'Groceries', 'Kids']
