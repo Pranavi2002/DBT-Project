@@ -25,7 +25,7 @@ Raw Data → Staging Models → Dimension Tables → Fact Table → Tests → Do
 | `marts/dimensions/` | Create reusable dimension tables      | `dim_customers.sql`, `dim_products.sql`                   |
 | `marts/`            | Build fact table joining dimensions   | `fct_sales.sql`                                           |
 | `snapshots/`        | Track changes over time (SCD)         | `customers_snapshot.sql`                                  |
-| `seeds/`            | Load static lookup tables from CSV    | `product_categories.csv`, `schema.yml`                    |
+| `seeds/`            | Load static lookup tables from CSV    | `product_categories.csv`, `schema.yml`, `customers.csv`                    |
 | `macros/`           | Define reusable SQL logic             | `calculate_sales_amount.sql`, `positive_sales.sql`, `expect_date_format.sql`             |
 | `tests/`            | Data quality & integrity checks       | (handled via macros + Great Expectations style tests)     |
 
@@ -222,6 +222,7 @@ models/
  ├── snapshots/
  ├── seeds/
  │    ├── product_categories.csv
+ │    ├── customers.csv
  │    └── schema.yml
 macros/
  ├── calcuate_sales_amount.sql
