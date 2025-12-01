@@ -177,6 +177,11 @@ models:
         #   - dbt_expectations.expect_column_values_to_match_strftime_format:
         #       arguments:
         #         format: "%Y-%m-%d"
+        tests:
+          - not_null
+          - expect_date_format:
+              arguments:
+                  format: 'YYYY-MM-DD'
 
       - name: customer_name
         description: "Full customer name"
