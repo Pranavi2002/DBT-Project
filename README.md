@@ -26,7 +26,7 @@ Raw Data → Staging Models → Dimension Tables → Fact Table → Tests → Do
 | `marts/`            | Build fact table joining dimensions   | `fct_sales.sql`                                           |
 | `snapshots/`        | Track changes over time (SCD)         | `customers_snapshot.sql`                                  |
 | `seeds/`            | Load static lookup tables from CSV    | `product_categories.csv`, `schema.yml`                    |
-| `macros/`           | Define reusable SQL logic             | `category_cleaning.sql`, `positive_sales.sql`             |
+| `macros/`           | Define reusable SQL logic             | `calculate_sales_amount.sql`, `positive_sales.sql`, `expect_date_format.sql`             |
 | `tests/`            | Data quality & integrity checks       | (handled via macros + Great Expectations style tests)     |
 
 ---
@@ -61,6 +61,7 @@ Implements a **Star Schema** — enabling efficient analytical queries.
 
 Static lookup data stored in `seeds/`:
 
+* `customers.csv` — used to create Customers table in Snowflake database
 * `product_categories.csv` — used to enrich product dimension tables
 * `schema.yml` — added for seed validation
 
@@ -76,8 +77,9 @@ dbt seed
 
 Reusable SQL logic defined in `macros/`:
 
-* `category_cleaning.sql` — cleans and standardizes product categories
+* `calculate_sales_amount.sql` —  Converts amount from cents to USD safely
 * `positive_sales.sql` — custom Great Expectations style test to ensure all sales amounts are positive
+* `expect_date_format.sql` - verify date column format
 
 Example macro:
 
@@ -181,7 +183,7 @@ select * from {{ ref('stg_customers') }}
                      │
                      ▼
         ┌───────────────────────────┐
-        │   Dimension Tables         │
+        │   Dimension Tables        │
         └────────────┬──────────────┘
                      │
                      ▼
@@ -210,7 +212,11 @@ select * from {{ ref('stg_customers') }}
 models/
  ├── sources.yml
  ├── staging/
+ │    ├── stg_customers.sql
+ │    ├── stg_orders.sql
+ │    └── stg_products.sql
  ├── marts/
+ │    ├── fct_sales.sql
  │    ├── schema.yml
  │    └── dimensions/
  ├── snapshots/
@@ -218,7 +224,8 @@ models/
  │    ├── product_categories.csv
  │    └── schema.yml
 macros/
- ├── category_cleaning.sql
+ ├── calcuate_sales_amount.sql
+ ├── expect_date_format.sql
  └── positive_sales.sql
 ```
 
